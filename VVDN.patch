@@ -947,3 +947,180 @@
  	};
  
  	pcie@140a0000 {/* C8 - Ethernet */
+--- Linux_for_Tegra/source/public/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-0000-a0.dtsi	2023-08-01 12:30:31.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-0000-a0.dtsi	2023-12-19 12:15:13.333182103 -0800
+@@ -16,9 +16,7 @@
+ #include "tegra234-p3768-0000-a0-pcie.dtsi"
+ #include "tegra234-p3768-0000-a0-fixed-regulator.dtsi"
+ #include "tegra234-p3768-audio.dtsi"
+-#include "tegra234-p3768-camera-rbpcv3-imx477.dtsi"
+-#include "tegra234-p3768-camera-rbpcv2-imx219.dtsi"
+-
++#include "tegra234-p3768-camera-rbpcv4-imx296.dtsi"
+ / {
+ 	gpio-keys {
+ 		compatible = "gpio-keys";
+@@ -269,7 +267,7 @@
+ 		ports {
+ 			port@0 {
+ 				endpoint {
+-					port-index = <1>;
++					port-index = <0>;
+ 				};
+ 			};
+ 		};
+@@ -281,7 +279,7 @@
+ 				ports {
+ 					port@0 {
+ 						endpoint@0 {
+-							port-index = <1>;
++							port-index = <0>;
+ 						};
+ 					};
+ 				};
+@@ -289,55 +287,4 @@
+ 		};
+ 	};
+ 
+-	cam_i2cmux{
+-		i2c@0 {
+-			rbpcv2_imx219_a@10 {
+-				mode0 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				mode1 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				mode2 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				mode3 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				mode4 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				ports {
+-					port@0 {
+-						endpoint {
+-							port-index = <1>;
+-						};
+-					};
+-				};
+-			};
+-
+-			rbpcv3_imx477_a@1a {
+-				mode0 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				mode1 {
+-					tegra_sinterface = "serial_b";
+-					lane_polarity = "6";
+-				};
+-				ports {
+-					port@0 {
+-						endpoint {
+-							port-index = <1>;
+-						};
+-					};
+-				};
+-			};
+-		};
+-	};
+ };
+--- Linux_for_Tegra/source/public/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-camera-rbpcv4-imx296.dtsi	2023-12-29 10:26:05.531140135 -0800
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-camera-rbpcv4-imx296.dtsi	2023-12-18 16:53:51.040352193 -0800
+@@ -0,0 +1,87 @@
++/*
++ * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "tegra234-camera-rbpcv4-imx296.dtsi"
++
++#define CAM0_PWDN       TEGRA234_MAIN_GPIO(H, 6)
++#define CAM1_PWDN       TEGRA234_MAIN_GPIO(AC, 0)
++#define CAM2_PWDN       TEGRA234_MAIN_GPIO(Q, 6)
++
++/*
++#define CAM0_PWDN       TEGRA234_MAIN_GPIO(P, 2)
++
++#define CAM1_PWDN       TEGRA234_MAIN_GPIO(Q, 0)
++
++#define CAM2_PWDN       TEGRA234_MAIN_GPIO(AG, 24)
++*/
++
++
++/ {
++
++	i2c@3180000 {
++
++		status="okay";
++		rbpcv4_imx296_a@36 {
++			status="okay";
++			reset-gpios = <&tegra_main_gpio CAM0_PWDN GPIO_ACTIVE_HIGH>;
++		};
++		eeprom@50{
++			compatible="24c04";
++			reg = <0x50>;
++			status="okay";
++		};
++	
++
++	};
++	i2c@c250000 {
++
++		status="okay";
++                rbpcv4_imx296_b@36 {
++                        status="okay";
++                        reset-gpios = <&tegra_main_gpio CAM1_PWDN GPIO_ACTIVE_HIGH>;
++                };
++
++		eeprom@50{
++			compatible="24c04";
++			reg = <0x50>;
++			status="okay";
++		};
++	};
++	i2c@3160000 {
++
++		status="okay";
++                rbpcv4_imx296_c@36 {
++                        status="okay";
++                        reset-gpios = <&tegra_main_gpio CAM2_PWDN GPIO_ACTIVE_HIGH>;
++                };
++
++		eeprom@50{
++			compatible="24c04";
++			reg = <0x50>;
++			status="okay";
++		};
++	};
++
++	gpio@2200000 {
++		camera-control-output-low {
++			gpio-hog;
++			output-low;
++			gpios = <CAM0_PWDN 0 CAM1_PWDN 0 CAM2_PWDN 0>;
++			label = "cam0-pwdn","cam1-pwdn","cam2-pwdn";
++		};
++	};
++};
