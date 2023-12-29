@@ -82,8 +82,9 @@ sudo touch Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/imx296_
 sudo touch Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/nv_imx296.c
 
 
-sudo ./flashScri.sh $ROOT
+#sudo ./flashScri.sh $ROOT
 
+sudo ./compile_kernel.sh $ROOT
 
 
 #sudo ./tools/kernel_flash/l4t_initrd_flash.sh --external-device nvme0n1p1 -c
