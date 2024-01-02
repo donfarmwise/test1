@@ -1124,3 +1124,1128 @@
 +		};
 +	};
 +};
+--- Linux_for_Tegra/source/public/kernel/kernel-5.10/arch/arm64/configs/defconfig	2023-08-01 12:31:08.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/kernel-5.10/arch/arm64/configs/defconfig	2023-12-19 12:15:55.679674675 -0800
+@@ -353,7 +353,7 @@
+ CONFIG_TIFM_CORE=m
+ CONFIG_SRAM=y
+ CONFIG_PCI_ENDPOINT_TEST=m
+-CONFIG_EEPROM_AT24=m
++CONFIG_EEPROM_AT24=y
+ CONFIG_EEPROM_AT25=m
+ CONFIG_CB710_CORE=m
+ CONFIG_MODS=m
+@@ -885,6 +885,7 @@
+ CONFIG_VIDEO_ECAM=m
+ CONFIG_NV_VIDEO_IMX185=m
+ CONFIG_NV_VIDEO_IMX219=m
++CONFIG_NV_VIDEO_IMX296=y
+ CONFIG_NV_VIDEO_IMX477=m
+ CONFIG_NV_VIDEO_IMX268=m
+ CONFIG_NV_VIDEO_IMX274=m
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/Kconfig	2023-08-01 12:31:24.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/Kconfig	2023-12-19 12:16:11.771112211 -0800
+@@ -40,6 +40,15 @@
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called imx219.
+ 
++config NV_VIDEO_IMX296
++        tristate "IMX296 camera sensor support"
++        depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++        help
++          This driver supports IMX296 camera sensor from Sony
++
++          To compile this driver as a module, choose M here: the module
++          will be called imx296.
++
+ config NV_VIDEO_IMX268
+ 	tristate "IMX268 camera sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/Makefile	2023-08-01 12:31:24.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/Makefile	2023-12-19 12:16:27.170579023 -0800
+@@ -7,6 +7,7 @@
+ obj-$(CONFIG_NV_VIDEO_IMX185) += nv_imx185_v1.o
+ obj-$(CONFIG_NV_VIDEO_IMX477) += nv_imx477.o
+ obj-$(CONFIG_NV_VIDEO_IMX219) += nv_imx219.o
++obj-$(CONFIG_NV_VIDEO_IMX296) += nv_imx296.o
+ obj-$(CONFIG_NV_VIDEO_IMX268) += nv_imx268.o
+ obj-$(CONFIG_NV_VIDEO_IMX274) += nv_imx274.o
+ obj-$(CONFIG_NV_VIDEO_IMX318) += nv_imx318.o
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/imx296_mode_tbls.h	2024-01-02 09:26:02.657624192 -0800
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/imx296_mode_tbls.h	2023-12-19 12:21:57.748092143 -0800
+@@ -0,0 +1,162 @@
++/*
++ * imx296_tables.h - sensor mode tables for imx296 HDR sensor.
++ *
++ * Copyright (c) 2015-2020, NVIDIA CORPORATION, All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __IMX296_I2C_TABLES__
++#define __IMX296_I2C_TABLES__
++
++#define IMX296_TABLE_WAIT_MS	0
++#define IMX296_TABLE_END	1
++
++#define imx296_reg struct reg_8
++
++static imx296_reg imx296_start_stream[] = {
++	{0x3000, 0x00},     /* mode select streaming on */
++	{IMX296_TABLE_WAIT_MS, 10},
++	{0x300a, 0x00},     /* mode select streaming on */
++	{IMX296_TABLE_END, 0x00}
++};
++
++static imx296_reg imx296_stop_stream[] = {
++	{0x300a, 0x01},     /* mode select streaming off */
++	{0x3000, 0x01},     /* mode select streaming off */
++	{IMX296_TABLE_END, 0x00}
++};
++
++static imx296_reg imx296_mode_common[] = {
++        
++	{0x3212,0x09},
++	{0x3089,0x80},
++	{0x308a,0x0b},
++	{0x308b,0x80},
++	{0x308c,0x08},
++	{0x418c,0x74},
++
++	{0x3a00,0x80},
++	{0x3005,0xf0},
++	{0x300d,0x00},
++	{0x3014,0x4c},
++	{0x3015,0x04},
++	{0x3079,0x08},
++	{0x3090,0x04},
++	{0x3094,0x04},
++	{0x3098,0x04},
++	{0x309e,0x04},
++	{0x30a0,0x04},
++	{0x30a1,0x3c},
++	{0x30a4,0x5f},
++	{0x30a8,0x91},
++	{0x30ac,0x28},
++	{0x30df,0x00},
++	{0x3165,0x00},
++	{0x3169,0x10},
++	{0x316a,0x02},
++	{0x31c8,0xf3},
++	{0x31d0,0xf4},
++	{0x321a,0x00},
++	{0x3226,0x02},
++	{0x3256,0x01},
++	{0x3516,0x77},
++	{0x3541,0x72},
++	{0x3758,0xa3},
++	{0x3759,0x00},
++	{0x375a,0x85},
++	{0x375b,0x00},
++	{0x3832,0xf5},
++	{0x3833,0x00},
++	{0x38a2,0xf6},
++	{0x38a3,0x00},
++	{0x3d48,0xa3},
++	{0x3d49,0x00},
++	{0x3d4a,0x85},
++	{0x3d4b,0x00},
++	{0x400e,0x58},
++	{0x4014,0x1c},
++	{0x4041,0x2a},
++	{0x40a2,0x06},
++	{0x40c1,0xf6},
++	{0x40c7,0x0f},
++	{0x40c8,0x00},
++	{0x4174,0x00},
++	{0x3254,0x00},
++	{IMX296_TABLE_WAIT_MS, 10},
++};
++
++static imx296_reg imx296_mode_1456x1088_60fps[] = {
++	{0x300b,0x01},
++        {0x3036,0x00},
++	{0x30aa,0x01},
++        {0x30ae,0x01},
++	{0x30af,0x0b},
++	{0x350b,0x7f},
++
++	{IMX296_TABLE_WAIT_MS, 10},
++	{ 0x3300, 0x00 },
++	{IMX296_TABLE_WAIT_MS, 30},
++	{IMX296_TABLE_END, 0x00}
++};
++
++static imx296_reg imx296_normal_mode[] = {
++	{0x300b,0x00},
++	{0x3036,0x00},
++	{0x30ae,0x00},
++	{0x30aa,0x00},
++	{0x30af,0x09},
++	{0x350b,0x0f},
++
++	{IMX296_TABLE_WAIT_MS, 10},
++	{ 0x3300, 0x00 },
++	{IMX296_TABLE_WAIT_MS, 30},
++	{IMX296_TABLE_END, 0x00}
++
++};
++
++
++
++enum {
++	IMX296_NORMAL_MODE,
++	IMX296_MODE_1456x1088_60FPS,
++
++	IMX296_MODE_COMMON,
++	IMX296_START_STREAM,
++	IMX296_STOP_STREAM,
++};
++
++static imx296_reg *mode_table[] = {
++	[IMX296_NORMAL_MODE] = imx296_normal_mode,
++	[IMX296_MODE_1456x1088_60FPS] = imx296_mode_1456x1088_60fps,
++
++
++	[IMX296_MODE_COMMON]  = imx296_mode_common,
++	[IMX296_START_STREAM]  = imx296_start_stream,
++	[IMX296_STOP_STREAM]  = imx296_stop_stream,
++};
++
++static const int imx296_60fps[] = {
++	60,
++};
++
++/*
++ * WARNING: frmfmt ordering need to match mode definition in
++ * device tree!
++ */
++static const struct camera_common_frmfmt imx296_frmfmt[] = {
++	{{1456, 1088},	imx296_60fps, 1, 0, IMX296_NORMAL_MODE},
++	{{1456, 1088},	imx296_60fps, 1, 0, IMX296_MODE_1456x1088_60FPS},
++};
++
++#endif /* __IMX219_I2C_TABLES__ */
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/nv_imx296.c	2024-01-02 09:28:32.827715356 -0800
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/nv_imx296.c	2023-12-26 15:45:45.193468125 -0800
+@@ -0,0 +1,815 @@
++/*
++ * imx296.c - imx296 sensor driver based on imx219+VVDN
++ *
++ * Copyright (c) 2015-2022, NVIDIA CORPORATION.  All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <linux/gpio.h>
++#include <linux/module.h>
++#include <linux/seq_file.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++
++#include <media/tegra_v4l2_camera.h>
++#include <media/tegracam_core.h>
++
++#include "../platform/tegra/camera/camera_gpio.h"
++#include "imx296_mode_tbls.h"
++
++#define IMX296_TRACE_INFO 0
++
++/* imx296 sensor register address */
++#define IMX296_MODEL_ID_ADDR_MSB		0x359b
++#define IMX296_MODEL_ID_ADDR_LSB		0x359a
++
++/* In dB*10 */
++#define IMX296_DIGITAL_GAIN_MIN     0
++#define IMX296_DIGITAL_GAIN_MAX     480
++#define IMX296_DIGITAL_GAIN_DEFAULT 20
++
++#define IMX296_DIGITAL_EXPOSURE_DEFAULT 16370
++
++#define IMX296_FRAME_RATE_DEFAULT   6000000
++
++ const struct of_device_id imx296_of_match[] = {
++	{ .compatible = "nvidia,imx296", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, imx296_of_match);
++
++static const u32 ctrl_cid_list[] = {
++	TEGRA_CAMERA_CID_GAIN,
++	TEGRA_CAMERA_CID_EXPOSURE,
++	TEGRA_CAMERA_CID_FRAME_RATE,
++	TEGRA_CAMERA_CID_SENSOR_MODE_ID,
++};
++
++struct imx296 {
++	struct i2c_client		*i2c_client;
++	struct v4l2_subdev		*subdev;
++	u16				fine_integ_time;
++	u32				frame_length;
++	u32                         	digital_gain;
++	u32                         	exposure_time;
++	u32                         	fps_change;
++	u32                         	frame_rate;
++	struct camera_common_data	*s_data;
++	struct tegracam_device		*tc_dev;
++};
++
++static const struct regmap_config sensor_regmap_config = {
++	.reg_bits = 16,
++	.val_bits = 8,
++	.cache_type = REGCACHE_RBTREE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
++	.use_single_rw = true,
++#else
++	.use_single_read = true,
++	.use_single_write = true,
++#endif
++};
++
++static inline int imx296_read_reg(struct camera_common_data *s_data,
++	u16 addr, u8 *val)
++{
++	int err = 0;
++	u32 reg_val = 0;
++	printk("imx296 imx296 read reg\n");
++
++	err = regmap_read(s_data->regmap, addr, &reg_val);
++	*val = reg_val & 0xff;
++
++	return err;
++}
++
++static inline int imx296_write_reg(struct camera_common_data *s_data,
++	u16 addr, u8 val)
++{
++	int err = 0;
++
++	err = regmap_write(s_data->regmap, addr, val);
++	if (err)
++		dev_err(s_data->dev, "%s: i2c write failed, 0x%x = %x",
++			__func__, addr, val);
++
++	return err;
++}
++
++static int imx296_write_table(struct imx296 *priv, const imx296_reg table[])
++{
++	return regmap_util_write_table_8(priv->s_data->regmap, table, NULL, 0,
++		IMX296_TABLE_WAIT_MS, IMX296_TABLE_END);
++}
++
++static int imx296_set_group_hold(struct tegracam_device *tc_dev, bool val)
++{
++	return 0;
++}
++static int imx296_set_gain(struct tegracam_device *tc_dev, s64 val)
++{
++	struct imx296 *priv = (struct imx296 *)tc_dev->priv;
++	struct device *dev = tc_dev->dev;
++	imx296_reg regs[3];
++	s64 gain = val;
++	int err;
++
++	if (gain < IMX296_DIGITAL_GAIN_MIN)
++		gain = IMX296_DIGITAL_GAIN_MIN;
++	else if (gain > IMX296_DIGITAL_GAIN_MAX)
++		gain = IMX296_DIGITAL_GAIN_MAX;
++	priv->digital_gain = gain;
++#if IMX296_TRACE_INFO
++	dev_err(dev, "%s: Set gain = %d\n", __func__, (int)gain);
++#endif
++	regs[0].addr = 0x3205; //   // IMX296_GAIN_HIGH_ADDR
++	regs[0].val = (priv->digital_gain >> 8) & 0x01;
++	regs[1].addr = 0x3204;      // IMX296_GAIN_LOW_ADDR
++	regs[1].val = priv->digital_gain & 0xff;
++	regs[2].addr = IMX296_TABLE_END;
++	regs[2].val = 0;
++
++	err = imx296_write_table(priv, regs);
++
++	if (err)
++		goto fail;
++	return 0;
++fail:
++	dev_err(dev, "%s: error=%d\n", __func__, err);
++	return err;
++}
++
++static int imx296_set_frame_rate(struct tegracam_device *tc_dev, s64 val)
++{
++	struct imx296 *priv = (struct imx296 *)tc_dev->priv;
++	struct device *dev = tc_dev->dev;
++	imx296_reg regs[3];
++	u32 fps;
++	int err;
++
++	priv->frame_rate = val;
++	val = val/100000;
++	dev_err(dev, "%s: Set FPS = %d\n", __func__, (int)val);
++	fps = (int)(100000000/(val*1481));
++
++	priv->frame_length = fps;
++	priv->fps_change = 1;
++
++	dev_err(dev, "%s: Set FPS cal val = %d\n", __func__, fps);
++	regs[0].addr = 0x3011;
++	regs[0].val = (priv->frame_length >> 8) & 0xff;
++	regs[1].addr = 0x3010;
++	regs[1].val = priv->frame_length & 0xff;
++	regs[2].addr = IMX296_TABLE_END;
++	regs[2].val = 0;
++
++
++	err = imx296_write_table(priv, regs);
++
++	if (err)
++		goto fail;
++	return 0;
++fail:
++	dev_err(dev, "%s: error=%d\n", __func__, err);
++	return err;
++}
++
++//
++// IMX296
++// 1H period 14.815us
++// NumberOfLines=1118
++//
++#define H1PERIOD_296 242726 // (U32)(14.815 * 16384.0)
++#define NRLINES_296  (1118)
++#define TOFFSET_296  233636 // (U32)(14.260 * 16384.0)
++#define VMAX_296     1118
++#define EXPOSURE_TIME_MIN_296  29
++#define EXPOSURE_TIME_MIN2_296 16504
++#define EXPOSURE_TIME_MAX_296  15534389
++
++/****** imx296_exposure = IMX296 exposure = 09.2019 *********************/
++static int imx296_exposure(struct imx296 *priv)
++{
++    struct camera_common_data *s_data = priv->s_data;
++    struct device *dev = s_data->dev;
++    int ret;
++    u32 exposure = 0;
++    imx296_reg regs[7];
++    if (priv->exposure_time < EXPOSURE_TIME_MIN_296)
++	    priv->exposure_time = EXPOSURE_TIME_MIN_296;
++    if (priv->exposure_time > EXPOSURE_TIME_MAX_296)
++	    priv->exposure_time = EXPOSURE_TIME_MAX_296;
++    if (priv->exposure_time < EXPOSURE_TIME_MIN2_296)
++    {
++	    // exposure = (NumberOfLines - exp_time / 1Hperiod + toffset / 1Hperiod )
++	    exposure = (NRLINES_296  -  ((int)(priv->exposure_time) * 16384 - TOFFSET_296)/H1PERIOD_296);
++#if IMX296_TRACE_INFO
++	    dev_info(dev, "SHS = %d \n",exposure);
++	    dev_err(dev, "%s(): exposure_time=%d, SHS=0x%x (%d)\n", __func__, priv->exposure_time, exposure, exposure);
++#endif
++
++	    regs[0].addr = 0x3012;
++	    regs[1].addr = 0x3011;
++	    regs[2].addr = 0x3010;
++	    regs[3].addr = 0x308f;
++	    regs[4].addr = 0x308e;
++	    regs[5].addr = 0x308d;
++
++
++	    regs[0].val = 0x00;
++	    regs[1].val = (VMAX_296 >> 8) & 0xff;
++	    regs[2].val =  VMAX_296       & 0xff;
++	    regs[3].val = (exposure >> 16) & 0x07;
++	    regs[4].val = (exposure >>  8) & 0xff;
++	    regs[5].val =  exposure        & 0xff;
++	    regs[6].addr = IMX296_TABLE_END;
++	    regs[6].val = 0;
++    }
++    else
++    {
++	    exposure = 5 + ((int)(priv->exposure_time) * 16384 - TOFFSET_296)/H1PERIOD_296;
++#if IMX296_TRACE_INFO
++	    dev_err(dev, "%s(): exposure_time=%d, VMAX=0x%x (%d)\n", __func__, priv->exposure_time, exposure, exposure);
++#endif
++	    regs[0].addr = 0x308f;
++	    regs[1].addr = 0x308e;
++	    regs[2].addr = 0x308d;
++	    regs[3].addr = 0x3012;
++	    regs[4].addr = 0x3011;
++	    regs[5].addr = 0x3010;
++	    regs[0].val = 0x00;
++	    regs[1].val = 0x00;
++	    regs[2].val = 0x04;
++	    regs[3].val = (exposure >> 16) & 0x07;
++	    regs[4].val = (exposure >>  8) & 0xff;
++	    regs[5].val =  exposure        & 0xff;
++
++	    regs[6].addr = IMX296_TABLE_END;
++	    regs[6].val = 0;
++    }
++    ret = imx296_write_table(priv, regs);
++    if (ret)
++    {
++	    dev_err(dev, "%s: imx296_write_table() error=%d\n", __func__, ret);
++    }
++    return ret;
++}
++
++
++
++static int imx296_set_exposure(struct tegracam_device *tc_dev, s64 val)
++{
++	int err = 0;
++	struct imx296 *priv = tc_dev->priv;
++#if IMX296_TRACE_INFO
++	struct device *dev = tc_dev->dev;
++	{
++		struct camera_common_data *s_data = tc_dev->s_data;
++		//    const struct sensor_mode_properties *mode =  &s_data->sensor_props.sensor_modes[s_data->mode_prop_idx];
++		struct sensor_mode_properties *mode =  &s_data->sensor_props.sensor_modes[s_data->mode_prop_idx];
++		dev_err(dev, "%s: min_exp_time,max_exp_time=%d,%d default_exp_time=%d Default FPS = %d\n", __func__,
++				(int)mode->control_properties.min_exp_time.val,
++				(int)mode->control_properties.max_exp_time.val,
++				(int)mode->control_properties.default_exp_time.val,
++				(int)mode->control_properties.default_framerate);
++	}
++#endif
++	priv->exposure_time = (u32)val;
++	priv->fps_change = 0;
++	err = imx296_exposure(priv);
++	return 0;
++}
++
++static struct tegracam_ctrl_ops imx296_ctrl_ops = {
++	.numctrls = ARRAY_SIZE(ctrl_cid_list),
++	.ctrl_cid_list = ctrl_cid_list,
++	.set_gain = imx296_set_gain,
++	.set_exposure = imx296_set_exposure,
++	.set_frame_rate = imx296_set_frame_rate,
++	.set_group_hold = imx296_set_group_hold,
++};
++
++static int imx296_power_on(struct camera_common_data *s_data)
++{
++	int err = 0;
++	struct camera_common_power_rail *pw = s_data->power;
++	struct camera_common_pdata *pdata = s_data->pdata;
++	struct device *dev = s_data->dev;
++
++	dev_err(dev, "%s: power on\n", __func__);
++	if (pdata && pdata->power_on) {
++		err = pdata->power_on(pw);
++		if (err)
++			dev_err(dev, "%s failed.\n", __func__);
++		else
++			pw->state = SWITCH_ON;
++		return err;
++	}
++
++	if (unlikely(!(pw->avdd || pw->iovdd || pw->dvdd)))
++		goto skip_power_seqn;
++
++	if (pw->reset_gpio) {
++		if (gpio_cansleep(pw->reset_gpio))
++			gpio_set_value_cansleep(pw->reset_gpio, 0);
++		else
++			gpio_set_value(pw->reset_gpio, 0);
++	}
++
++	usleep_range(10, 20);
++
++	if (pw->avdd) {
++		err = regulator_enable(pw->avdd);
++		if (err)
++			goto imx296_avdd_fail;
++	}
++
++	if (pw->iovdd) {
++		err = regulator_enable(pw->iovdd);
++		if (err)
++			goto imx296_iovdd_fail;
++	}
++
++	if (pw->dvdd) {
++		err = regulator_enable(pw->dvdd);
++		if (err)
++			goto imx296_dvdd_fail;
++	}
++
++	usleep_range(10, 20);
++
++skip_power_seqn:
++	if (pw->reset_gpio) {
++		if (gpio_cansleep(pw->reset_gpio))
++			gpio_set_value_cansleep(pw->reset_gpio, 1);
++		else
++			gpio_set_value(pw->reset_gpio, 1);
++	}
++
++	/* Need to wait for t4 + t5 + t9 time as per the data sheet */
++	/* t4 - 200us, t5 - 6ms, t9 - 1.2ms */
++	/* also add 2ms to workaround the i2c timeout issue on 2nd camera */
++	usleep_range(10000, 10100);
++
++	pw->state = SWITCH_ON;
++
++	return 0;
++
++imx296_dvdd_fail:
++	regulator_disable(pw->iovdd);
++
++imx296_iovdd_fail:
++	regulator_disable(pw->avdd);
++
++imx296_avdd_fail:
++	dev_err(dev, "%s failed.\n", __func__);
++
++	return -ENODEV;
++}
++
++static int imx296_power_off(struct camera_common_data *s_data)
++{
++	int err = 0;
++	struct camera_common_power_rail *pw = s_data->power;
++	struct camera_common_pdata *pdata = s_data->pdata;
++	struct device *dev = s_data->dev;
++
++	dev_err(dev, "%s: power off turning off camera\n", __func__);
++
++	if (pdata && pdata->power_off) {
++		err = pdata->power_off(pw);
++		if (err) {
++			dev_err(dev, "%s failed.\n", __func__);
++			return err;
++		}
++	} else {
++		if (pw->reset_gpio) {
++			if (gpio_cansleep(pw->reset_gpio))
++				gpio_set_value_cansleep(pw->reset_gpio, 0);
++			else
++				gpio_set_value(pw->reset_gpio, 0);
++		}
++
++		usleep_range(10, 20);
++
++		if (pw->dvdd)
++			regulator_disable(pw->dvdd);
++		if (pw->iovdd)
++			regulator_disable(pw->iovdd);
++		if (pw->avdd)
++			regulator_disable(pw->avdd);
++	}
++
++	usleep_range(5000, 5000);
++	pw->state = SWITCH_OFF;
++
++	return 0;
++}
++
++static int imx296_power_put(struct tegracam_device *tc_dev)
++{
++	struct camera_common_data *s_data = tc_dev->s_data;
++	struct camera_common_power_rail *pw = s_data->power;
++
++	if (unlikely(!pw))
++		return -EFAULT;
++
++	if (likely(pw->dvdd))
++		devm_regulator_put(pw->dvdd);
++
++	if (likely(pw->avdd))
++		devm_regulator_put(pw->avdd);
++
++	if (likely(pw->iovdd))
++		devm_regulator_put(pw->iovdd);
++
++	pw->dvdd = NULL;
++	pw->avdd = NULL;
++	pw->iovdd = NULL;
++
++	if (likely(pw->reset_gpio))
++		gpio_free(pw->reset_gpio);
++
++	return 0;
++}
++
++static int imx296_power_get(struct tegracam_device *tc_dev)
++{
++	struct device *dev = tc_dev->dev;
++	struct camera_common_data *s_data = tc_dev->s_data;
++	struct camera_common_power_rail *pw = s_data->power;
++	struct camera_common_pdata *pdata = s_data->pdata;
++	struct clk *parent;
++	int err = 0;
++
++	if (!pdata) {
++		dev_err(dev, "pdata missing\n");
++		return -EFAULT;
++	}
++
++	/* Sensor MCLK (aka. INCK) */
++	if (pdata->mclk_name) {
++		pw->mclk = devm_clk_get(dev, pdata->mclk_name);
++		if (IS_ERR(pw->mclk)) {
++			dev_err(dev, "unable to get clock %s\n",
++				pdata->mclk_name);
++			return PTR_ERR(pw->mclk);
++		}
++
++		if (pdata->parentclk_name) {
++			parent = devm_clk_get(dev, pdata->parentclk_name);
++			if (IS_ERR(parent)) {
++				dev_err(dev, "unable to get parent clock %s",
++					pdata->parentclk_name);
++			} else
++				clk_set_parent(pw->mclk, parent);
++		}
++	}
++
++	/* analog 2.8v */
++	if (pdata->regulators.avdd)
++		err |= camera_common_regulator_get(dev,
++				&pw->avdd, pdata->regulators.avdd);
++	/* IO 1.8v */
++	if (pdata->regulators.iovdd)
++		err |= camera_common_regulator_get(dev,
++				&pw->iovdd, pdata->regulators.iovdd);
++	/* dig 1.2v */
++	if (pdata->regulators.dvdd)
++		err |= camera_common_regulator_get(dev,
++				&pw->dvdd, pdata->regulators.dvdd);
++	if (err) {
++		dev_err(dev, "%s: unable to get regulator(s)\n", __func__);
++		goto done;
++	}
++
++	/* Reset or ENABLE GPIO */
++	pw->reset_gpio = pdata->reset_gpio;
++	err = gpio_request(pw->reset_gpio, "cam_reset_gpio");
++	if (err < 0) {
++		dev_err(dev, "%s: unable to request reset_gpio (%d)\n",
++			__func__, err);
++		goto done;
++	}
++
++done:
++	pw->state = SWITCH_OFF;
++
++	return err;
++}
++
++static struct camera_common_pdata *imx296_parse_dt(
++	struct tegracam_device *tc_dev)
++{
++	struct device *dev = tc_dev->dev;
++	struct device_node *np = dev->of_node;
++	struct camera_common_pdata *board_priv_pdata;
++	const struct of_device_id *match;
++	struct camera_common_pdata *ret = NULL;
++	int err = 0;
++	int gpio;
++
++	if (!np)
++		return NULL;
++
++	match = of_match_device(imx296_of_match, dev);
++	if (!match) {
++		dev_err(dev, "Failed to find matching dt id\n");
++		return NULL;
++	}
++
++	board_priv_pdata = devm_kzalloc(dev,
++		sizeof(*board_priv_pdata), GFP_KERNEL);
++	if (!board_priv_pdata)
++		return NULL;
++
++	gpio = of_get_named_gpio(np, "reset-gpios", 0);
++	if (gpio < 0) {
++		if (gpio == -EPROBE_DEFER)
++			ret = ERR_PTR(-EPROBE_DEFER);
++		dev_err(dev, "reset-gpios not found\n");
++		goto error;
++	}
++	board_priv_pdata->reset_gpio = (unsigned int)gpio;
++
++	err = of_property_read_string(np, "mclk", &board_priv_pdata->mclk_name);
++	if (err)
++		dev_dbg(dev, "mclk name not present, "
++			"assume sensor driven externally\n");
++
++	err = of_property_read_string(np, "avdd-reg",
++		&board_priv_pdata->regulators.avdd);
++	err |= of_property_read_string(np, "iovdd-reg",
++		&board_priv_pdata->regulators.iovdd);
++	err |= of_property_read_string(np, "dvdd-reg",
++		&board_priv_pdata->regulators.dvdd);
++	if (err)
++		dev_dbg(dev, "avdd, iovdd and/or dvdd reglrs. not present, "
++			"assume sensor powered independently\n");
++
++	board_priv_pdata->has_eeprom =
++		of_property_read_bool(np, "has-eeprom");
++
++	return board_priv_pdata;
++
++error:
++	devm_kfree(dev, board_priv_pdata);
++
++	return ret;
++}
++
++static int imx296_set_mode(struct tegracam_device *tc_dev)
++{
++	struct imx296 *priv = (struct imx296 *)tegracam_get_privdata(tc_dev);
++	struct camera_common_data *s_data = tc_dev->s_data;
++
++	int err = 0;
++	printk("imx296 imx296_set mode = %d\n", s_data->mode);
++
++	err = imx296_write_table(priv, mode_table[IMX296_MODE_COMMON]);
++	if (err)
++		return err;
++	printk("imx296 imx296_set mode writing = %d\n", s_data->mode);
++
++	err = imx296_write_table(priv, mode_table[s_data->mode]);
++	printk("imx296 imx296_set mode writing complete= %d\n", s_data->mode);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++static int imx296_start_streaming(struct tegracam_device *tc_dev)
++{
++	struct imx296 *priv = (struct imx296 *)tegracam_get_privdata(tc_dev);
++	printk("imx296 imx296_start_streaming\n");
++	imx296_set_gain(tc_dev, priv->digital_gain);
++	if (priv->fps_change == 1) {
++		imx296_set_frame_rate(tc_dev, priv->frame_rate);
++	} else {
++		imx296_set_exposure(tc_dev, priv->exposure_time);
++	}
++
++	return imx296_write_table(priv, mode_table[IMX296_START_STREAM]);
++}
++
++static int imx296_stop_streaming(struct tegracam_device *tc_dev)
++{
++	int err;
++	struct imx296 *priv = (struct imx296 *)tegracam_get_privdata(tc_dev);
++
++	printk("imx296 imx296_stop_streaming\n");
++	err = imx296_write_table(priv, mode_table[IMX296_STOP_STREAM]);
++
++	usleep_range(50000, 51000);
++
++	return err;
++}
++
++static struct camera_common_sensor_ops imx296_common_ops = {
++	.numfrmfmts = ARRAY_SIZE(imx296_frmfmt),
++	.frmfmt_table = imx296_frmfmt,
++	.power_on = imx296_power_on,
++	.power_off = imx296_power_off,
++	.write_reg = imx296_write_reg,
++	.read_reg = imx296_read_reg,
++	.parse_dt = imx296_parse_dt,
++	.power_get = imx296_power_get,
++	.power_put = imx296_power_put,
++	.set_mode = imx296_set_mode,
++	.start_streaming = imx296_start_streaming,
++	.stop_streaming = imx296_stop_streaming,
++};
++
++static int imx296_board_setup(struct imx296 *priv)
++{
++	struct camera_common_data *s_data = priv->s_data;
++	struct camera_common_pdata *pdata = s_data->pdata;
++	struct device *dev = s_data->dev;
++	u8 reg_val[2];
++	int err = 0;
++
++	if (pdata->mclk_name) {
++		err = camera_common_mclk_enable(s_data);
++		if (err) {
++			dev_err(dev, "error turning on mclk (%d)\n", err);
++			goto done;
++		}
++	}
++
++	err = imx296_power_on(s_data);
++	if (err) {
++		dev_err(dev, "error during power on sensor (%d)\n", err);
++		goto err_power_on;
++	}
++	err = imx296_read_reg(s_data, 0x3148, &reg_val[1]);
++	dev_err(dev, "%s: imx 296 i2c read 48 probe (%x)\n",
++			__func__, reg_val[1]);
++	err = imx296_read_reg(s_data, 0x3149, &reg_val[1]);
++	dev_err(dev, "%s: imx 296 i2c read 49 probe (%x)\n",
++			__func__, reg_val[1]);
++
++	/* Probe sensor model id registers */
++	err = imx296_read_reg(s_data, IMX296_MODEL_ID_ADDR_MSB, &reg_val[0]);
++	dev_err(dev, "%s: imx 296 i2c read probe (%x)\n",
++			__func__, reg_val[0]);
++	if (err) {
++		dev_err(dev, "%s: error during i2c read probe (%d)\n",
++			__func__, err);
++		goto err_reg_probe;
++	}
++	err = imx296_read_reg(s_data, IMX296_MODEL_ID_ADDR_LSB, &reg_val[1]);
++	dev_err(dev, "%s: imx 296 i2c read probe (%x)\n",
++			__func__, reg_val[1]);
++	if (err) {
++		dev_err(dev, "%s: error during i2c read probe (%d)\n",
++			__func__, err);
++		goto err_reg_probe;
++	}
++	if (!((reg_val[0] == 0x04) && reg_val[1] == 0x94))
++		dev_err(dev, "%s: invalid sensor model id: %x%x\n",
++			__func__, reg_val[0], reg_val[1]);
++
++	priv->fps_change = 1;
++
++err_reg_probe:
++	imx296_power_off(s_data);
++	dev_err(dev, "%s: imx296 imx296_power_off\n",
++			__func__);
++
++err_power_on:
++	if (pdata->mclk_name) {
++		camera_common_mclk_disable(s_data);
++		dev_err(dev, "%s: IMX296 mclk_disable\n",
++			__func__);
++	}
++
++done:
++	return err;
++}
++
++static int imx296_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	dev_err(&client->dev, "%s:\n", __func__);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops imx296_subdev_internal_ops = {
++	.open = imx296_open,
++};
++
++static int imx296_probe(struct i2c_client *client,
++	const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct tegracam_device *tc_dev;
++	struct imx296 *priv;
++	int err;
++
++	dev_err(dev, "probing v4l2 sensor at addr 0x%0x\n", client->addr);
++
++	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
++		return -EINVAL;
++
++	priv = devm_kzalloc(dev,
++			sizeof(struct imx296), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	tc_dev = devm_kzalloc(dev,
++			sizeof(struct tegracam_device), GFP_KERNEL);
++	if (!tc_dev)
++		return -ENOMEM;
++
++	priv->i2c_client = tc_dev->client = client;
++	tc_dev->dev = dev;
++	strncpy(tc_dev->name, "imx296", sizeof(tc_dev->name));
++	tc_dev->dev_regmap_config = &sensor_regmap_config;
++	tc_dev->sensor_ops = &imx296_common_ops;
++	tc_dev->v4l2sd_internal_ops = &imx296_subdev_internal_ops;
++	tc_dev->tcctrl_ops = &imx296_ctrl_ops;
++
++	err = tegracam_device_register(tc_dev);
++	if (err) {
++		dev_err(dev, "tegra camera driver registration failed\n");
++		return err;
++	}
++	priv->tc_dev = tc_dev;
++	priv->s_data = tc_dev->s_data;
++	priv->subdev = &tc_dev->s_data->subdev;
++	tegracam_set_privdata(tc_dev, (void *)priv);
++
++	err = imx296_board_setup(priv);
++    //TODO:DW->added now and needed to be removed
++	// err=0;
++
++	if (err) {
++		tegracam_device_unregister(tc_dev);
++		dev_err(dev, "board setup failed\n");
++		return err;
++	}
++
++	dev_err(dev, "board setup success\n");
++	priv->digital_gain = IMX296_DIGITAL_GAIN_DEFAULT;
++	priv->exposure_time = IMX296_DIGITAL_EXPOSURE_DEFAULT;
++	priv->frame_rate = IMX296_FRAME_RATE_DEFAULT;
++	err = tegracam_v4l2subdev_register(tc_dev, true);
++	if (err) {
++		dev_err(dev, "tegra camera subdev registration failed\n");
++		return err;
++	}
++
++	dev_err(dev, "detected imx296 sensor\n");
++
++	return 0;
++}
++
++static int imx296_remove(struct i2c_client *client)
++{
++	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
++	struct imx296 *priv = (struct imx296 *)s_data->priv;
++
++	tegracam_v4l2subdev_unregister(priv->tc_dev);
++	tegracam_device_unregister(priv->tc_dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id imx296_id[] = {
++	{ "imx296", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, imx296_id);
++
++static struct i2c_driver imx296_i2c_driver = {
++	.driver = {
++		.name = "imx296",
++		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(imx296_of_match),
++	},
++	.probe = imx296_probe,
++	.remove = imx296_remove,
++	.id_table = imx296_id,
++};
++module_i2c_driver(imx296_i2c_driver);
++
++MODULE_DESCRIPTION("Media Controller driver for Sony IMX296");
++MODULE_AUTHOR("NVIDIA Corporation");
++MODULE_LICENSE("GPL v2");
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/platform/tegra/camera/camera_common.c	2023-08-01 12:31:24.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/platform/tegra/camera/camera_common.c	2023-12-19 12:16:41.538085924 -0800
+@@ -131,6 +131,21 @@
+ 		V4L2_COLORSPACE_SRGB,
+ 		V4L2_PIX_FMT_VYUY,
+ 	},
++	{
++		MEDIA_BUS_FMT_Y8_1X8,     /* Gray 8-bit*/
++		V4L2_COLORSPACE_RAW,
++		V4L2_PIX_FMT_GREY,
++	},
++	{
++		MEDIA_BUS_FMT_Y10_1X10,     /* Gray 10-bit*/
++		V4L2_COLORSPACE_RAW,
++		V4L2_PIX_FMT_Y10,
++	},
++	{
++		MEDIA_BUS_FMT_Y12_1X12,     /* Gray 12-bit*/
++		V4L2_COLORSPACE_RAW,
++		V4L2_PIX_FMT_Y12,
++	},
+ 	/*
+ 	 * The below two formats are not supported by VI4,
+ 	 * keep them at the last to ensure they get discarded
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/platform/tegra/camera/sensor_common.c	2023-08-01 12:31:24.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/platform/tegra/camera/sensor_common.c	2023-12-19 12:17:01.477408338 -0800
+@@ -273,6 +273,12 @@
+ 		*format = V4L2_PIX_FMT_UYVY;
+ 	else if (strncmp(pixel_t, "yuv_vyuy16", size) == 0)
+ 		*format = V4L2_PIX_FMT_VYUY;
++	else if (strncmp(pixel_t, "gray", size) == 0)
++		*format = V4L2_PIX_FMT_GREY;
++	else if (strncmp(pixel_t, "y10", size) == 0)
++		*format = V4L2_PIX_FMT_Y10;
++	else if (strncmp(pixel_t, "y12", size) == 0)
++		*format = V4L2_PIX_FMT_Y12;
+ 	else {
+ 		pr_err("%s: Need to extend format%s\n", __func__, pixel_t);
+ 		return -EINVAL;
+--- Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/platform/tegra/camera/vi/vi5_formats.h	2023-08-01 12:31:24.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/platform/tegra/camera/vi/vi5_formats.h	2023-12-19 12:17:20.132781242 -0800
+@@ -95,6 +95,8 @@
+ 				RAW8, SGBRG8, "GBGB.. RGRG.."),
+ 	TEGRA_VIDEO_FORMAT(RAW8, 8, SBGGR8_1X8, 1, 1, T_R8,
+ 				RAW8, SBGGR8, "BGBG.. GRGR.."),
++	TEGRA_VIDEO_FORMAT(RAW8, 8, Y8_1X8, 1, 1, T_R8,
++				RAW8, GREY, "GRAY8"),
+ 
+ 	/* RAW 10 */
+ 	TEGRA_VIDEO_FORMAT(RAW10, 10, SRGGB10_1X10, 2, 1, T_R16,
+@@ -105,7 +107,14 @@
+ 				RAW10, SGBRG10, "GBGB.. RGRG.."),
+ 	TEGRA_VIDEO_FORMAT(RAW10, 10, SBGGR10_1X10, 2, 1, T_R16,
+ 				RAW10, SBGGR10, "BGBG.. GRGR.."),
+-
++	/*RAW 10 in 8bit*/
++	TEGRA_VIDEO_FORMAT(RAW10, 10, Y10_1X10, 1, 1, T_R8,
++				RAW10, Y10, "GRAY10"),
++#ifdef RAW_16_BIT
++	/*RAW10 in 16bit*/
++	TEGRA_VIDEO_FORMAT(RAW10, 10, Y10_1X10, 2, 1, T_R16_I,
++				RAW10, Y10, "GRAY10"),
++#endif
+ 	/* RAW 12 */
+ 	TEGRA_VIDEO_FORMAT(RAW12, 12, SRGGB12_1X12, 2, 1, T_R16,
+ 				RAW12, SRGGB12, "RGRG.. GBGB.."),
+@@ -115,6 +124,8 @@
+ 				RAW12, SGBRG12, "GBGB.. RGRG.."),
+ 	TEGRA_VIDEO_FORMAT(RAW12, 12, SBGGR12_1X12, 2, 1, T_R16,
+ 				RAW12, SBGGR12, "BGBG.. GRGR.."),
++	TEGRA_VIDEO_FORMAT(RAW12, 12, Y12_1X12, 2, 1, T_R16_I,
++				RAW12, Y12, "GRAY12"),
+ 
+ 	/* RGB888 */
+ 	TEGRA_VIDEO_FORMAT(RGB888, 24, RGB888_1X24, 4, 1, T_A8R8G8B8,
+--- Linux_for_Tegra/source/public/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-camera-rbpcv2-imx219.dtsi	2023-08-01 12:30:31.000000000 -0700
++++ /home/engineering/Downloads/VVDN_DON2/vvdn-linux/Linux_for_Tegra/source/public/hardware/nvidia/platform/t23x/p3768/kernel-dts/cvb/tegra234-p3768-camera-rbpcv2-imx219.dtsi	2023-12-19 12:15:31.692523578 -0800
+@@ -30,7 +30,7 @@
+ 		i2c-parent = <&cam_i2c>;
+ 		mux-gpios = <&tegra_aon_gpio CAM_I2C_MUX GPIO_ACTIVE_HIGH>;
+ 		i2c@0 {
+-			status = "okay";
++			status = "disabled";
+ 			reg = <0>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+@@ -39,7 +39,7 @@
+ 			};
+ 		};
+ 		i2c@1 {
+-			status = "okay";
++			status = "disabled";
+ 			reg = <1>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
