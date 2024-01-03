@@ -82,7 +82,11 @@ sudo touch Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/imx296_
 sudo touch Linux_for_Tegra/source/public/kernel/nvidia/drivers/media/i2c/nv_imx296.c
 
 
-#sudo ./flashScri.sh $ROOT
+
+sudo patch -p0 --dry-run < VVDN.patch
+sudo ./VVDN_checkout.sh
+#sudo patch -p0 < VVDN.patch
+
 
 sudo ./compile_kernel.sh $ROOT
 
