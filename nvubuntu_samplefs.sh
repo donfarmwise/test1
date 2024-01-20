@@ -32,6 +32,8 @@ qemu_name="qemu-${qemu_abi}-static"
 target_qemu_path="usr/bin/${qemu_name}"
 host_qemu_path="/usr/bin/${qemu_name}"
 
+root_directory="/home/engineering/VVDN_DON07/vvdn-linux"
+
 function check_pre_req_distro()
 {
 	if [ "${abi}" = "arm" ] || [ "${abi}" = "armhf" ]; then
@@ -91,6 +93,25 @@ function install_package2()
 		#TODO:DW->start of modification
 		if string_include_item ${1}; then
 		    echo "find *.deb"
+			#sudo apt install -y $(readlink -f opencv/dist/* | xargs)
+            #sudo LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot . apt -y install "./${1}" || ret=$?
+            #sudo LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot . dpkg -i "./${1}" || ret=$?
+			#sudo LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot . dpkg -i "${1}" || ret=$?
+			#value=readlink -f opencv/dist/${1} | xargs
+			sudo echo "pwd is ${PWD}"
+			sudo cp ${root_directory}/${1} ${PWD}
+			sudo ls -al ${PWD}
+			
+			value="$(readlink -f ./${1} | xargs)"
+ 
+
+			echo "value is ${value}"
+            #sudo apt install -y ${value}  
+			#sudo LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot . apt-get -y --no-install-recommends --allow-downgrades install "${value}" || ret=$?
+			sudo LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot . apt-get -y --no-install-recommends --allow-downgrades install "$(readlink -f ./${1} | xargs)"
+
+
+
 		else
 		#end of modification
 			sudo LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot . apt-get -y --no-install-recommends --allow-downgrades install "${1}" || ret=$?
@@ -105,7 +126,7 @@ function install_package2()
 					echo "Retrying ${1} package install"
 				fi
 			fi
-		else
+		fi
 	done
 }
 
@@ -171,13 +192,13 @@ function create_samplefs()
 	if [ ! -z "${package_list}" ]; then
 		for package in ${package_list}
 		do
-			if ! install_package "${package}"; then
+			if ! install_package2 "${package}"; then
 				package_name="$(echo "${package}" | cut -d'=' -f1)"
 				if [ "${package_name}" = "${package}" ]; then
 					echo "ERROR: Failed to install ${package}"
 				else
 					echo "Try to install ${package_name} the latest version"
-					if ! install_package "${package_name}"; then
+					if ! install_package2 "${package_name}"; then
 						echo "ERROR: Failed to install ${package_name}"
 					fi
 				fi
@@ -185,12 +206,12 @@ function create_samplefs()
 		done
 	fi
     #TODO:DW->starts here
-   	sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-dev.deb
-	sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-licenses.deb
-	sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-main.deb
-	sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-libs.deb
-	sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-python.deb
-	sudo LC_ALL=C chroot . dpkg -i OOpenCV-4.5.0-3~farmwise-aarch64-scripts.deb
+   	#sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-dev.deb
+	#sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-licenses.deb
+	#sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-main.deb
+	#sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-libs.deb
+	#sudo LC_ALL=C chroot . dpkg -i OpenCV-4.5.0-3~farmwise-aarch64-python.deb
+	#sudo LC_ALL=C chroot . dpkg -i OOpenCV-4.5.0-3~farmwise-aarch64-scripts.deb
 
 
 
